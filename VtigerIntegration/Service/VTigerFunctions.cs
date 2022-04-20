@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using VtigerIntegration.Interfaces;
 using VtigerIntegration.Models;
 using VtigerIntegration.Utils;
 
@@ -23,6 +24,7 @@ namespace VtigerIntegration
     {
         private string serviceUrl;
         private string baseUrl;
+        private readonly VTigerConfiguration _vconfig;
         /// <summary>
         /// The URL of the VTiger-CRM (e.g. http://demo.vtiger.de/)
         /// </summary>
@@ -83,6 +85,7 @@ namespace VtigerIntegration
         }
 
         private string sessionName;
+
         /// <summary>
         /// The session identifier which is used for authentication
         /// </summary>
@@ -98,123 +101,10 @@ namespace VtigerIntegration
         private ImportContext jsonImporter;
         private ExportContext jsonExporter;
 
-        /// <summary>
-        /// Create an instance of the VTiger-API interface
-        /// </summary>
-        /// <param name="aServiceUrl">Address of the service (example: http://demo.vtiger.de)</param>
-        public VTiger(string aServiceUrl)
+        public VTiger(VTigerConfiguration config)
         {
-            ServiceUrl = aServiceUrl;
-
-            #region Json-Converters
-            jsonImporter = new ImportContext();
-            //JsonConvert.CurrentImportContextFactory = delegate { return jsonImporter; };
-            jsonImporter.Register(new BooleanImporterEx());
-            jsonImporter.Register(new DateTimeImporterEx());
-            jsonImporter.Register(new Int32ImporterEx());
-            jsonImporter.Register(new EmailAdressesImporter());
-            jsonImporter.Register(new EnumValueImporter(typeof(TaskStatus), VTigerEnumValues.TaskstatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Eventstatus), VTigerEnumValues.EventstatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Taskpriority), VTigerEnumValues.TaskpriorityValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Activitytype), VTigerEnumValues.ActivitytypeValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Visibility), VTigerEnumValues.VisibilityValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Duration_minutes), VTigerEnumValues.Duration_minutesValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(RecurringType), VTigerEnumValues.RecurringtypeValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Leadsource), VTigerEnumValues.LeadsourceValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Industry), VTigerEnumValues.IndustryValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Leadstatus), VTigerEnumValues.LeadstatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Rating), VTigerEnumValues.RatingValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(TaskStatus), VTigerEnumValues.TaskstatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Email_flag), VTigerEnumValues.Email_flagValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Ticketpriorities), VTigerEnumValues.TicketprioritiesValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Ticketseverities), VTigerEnumValues.TicketseveritiesValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Ticketstatus), VTigerEnumValues.TicketstatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Ticketcategories), VTigerEnumValues.TicketcategoriesValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Faqcategories), VTigerEnumValues.FaqcategoriesValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Faqstatus), VTigerEnumValues.FaqstatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Quotestage), VTigerEnumValues.QuotestageValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(HdnTaxType), VTigerEnumValues.HdnTaxTypeValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(PoStatus), VTigerEnumValues.PostatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(SoStatus), VTigerEnumValues.SostatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Recurring_frequency), VTigerEnumValues.Recurring_frequencyValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Payment_duration), VTigerEnumValues.Payment_durationValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Invoicestatus), VTigerEnumValues.InvoicestatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Campaigntype), VTigerEnumValues.CampaigntypeValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Campaignstatus), VTigerEnumValues.CampaignstatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Expectedresponse), VTigerEnumValues.ExpectedresponseValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Activity_view), VTigerEnumValues.Activity_viewValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Lead_view), VTigerEnumValues.Lead_viewValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Date_format), VTigerEnumValues.Date_formatValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Reminder_interval), VTigerEnumValues.Reminder_intervalValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Tracking_unit), VTigerEnumValues.Tracking_unitValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Contract_status), VTigerEnumValues.Contract_statusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Contract_priority), VTigerEnumValues.Contract_priorityValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Contract_type), VTigerEnumValues.Contract_typeValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Service_usageunit), VTigerEnumValues.Service_usageunitValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Servicecategory), VTigerEnumValues.ServicecategoryValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Assetstatus), VTigerEnumValues.AssetstatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Projectmilestonetype), VTigerEnumValues.ProjectmilestonetypeValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Projecttasktype), VTigerEnumValues.ProjecttasktypeValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Projecttaskpriority), VTigerEnumValues.ProjecttaskpriorityValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Projecttaskprogress), VTigerEnumValues.ProjecttaskprogressValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Projectstatus), VTigerEnumValues.ProjectstatusValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Projecttype), VTigerEnumValues.ProjecttypeValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Projectpriority), VTigerEnumValues.ProjectpriorityValues));
-            jsonImporter.Register(new EnumValueImporter(typeof(Progress), VTigerEnumValues.ProgressValues));
-
-            jsonExporter = JsonConvert.DefaultExportContextFactory();
-            jsonExporter.Register(new BooleanExporterEx());
-            jsonExporter.Register(new DateTimeExporterEx());
-            jsonExporter.Register(new EmailAdressesExporter());
-            jsonExporter.Register(new EnumValueExporter(typeof(TaskStatus), VTigerEnumValues.TaskstatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Eventstatus), VTigerEnumValues.EventstatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Taskpriority), VTigerEnumValues.TaskpriorityValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Activitytype), VTigerEnumValues.ActivitytypeValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Visibility), VTigerEnumValues.VisibilityValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Duration_minutes), VTigerEnumValues.Duration_minutesValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(RecurringType), VTigerEnumValues.RecurringtypeValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Leadsource), VTigerEnumValues.LeadsourceValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Industry), VTigerEnumValues.IndustryValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Leadstatus), VTigerEnumValues.LeadstatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Rating), VTigerEnumValues.RatingValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(TaskStatus), VTigerEnumValues.TaskstatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Email_flag), VTigerEnumValues.Email_flagValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Ticketpriorities), VTigerEnumValues.TicketprioritiesValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Ticketseverities), VTigerEnumValues.TicketseveritiesValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Ticketstatus), VTigerEnumValues.TicketstatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Ticketcategories), VTigerEnumValues.TicketcategoriesValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Faqcategories), VTigerEnumValues.FaqcategoriesValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Faqstatus), VTigerEnumValues.FaqstatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Quotestage), VTigerEnumValues.QuotestageValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(HdnTaxType), VTigerEnumValues.HdnTaxTypeValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(PoStatus), VTigerEnumValues.PostatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(SoStatus), VTigerEnumValues.SostatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Recurring_frequency), VTigerEnumValues.Recurring_frequencyValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Payment_duration), VTigerEnumValues.Payment_durationValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Invoicestatus), VTigerEnumValues.InvoicestatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Campaigntype), VTigerEnumValues.CampaigntypeValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Campaignstatus), VTigerEnumValues.CampaignstatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Expectedresponse), VTigerEnumValues.ExpectedresponseValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Activity_view), VTigerEnumValues.Activity_viewValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Lead_view), VTigerEnumValues.Lead_viewValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Date_format), VTigerEnumValues.Date_formatValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Reminder_interval), VTigerEnumValues.Reminder_intervalValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Tracking_unit), VTigerEnumValues.Tracking_unitValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Contract_status), VTigerEnumValues.Contract_statusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Contract_priority), VTigerEnumValues.Contract_priorityValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Contract_type), VTigerEnumValues.Contract_typeValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Service_usageunit), VTigerEnumValues.Service_usageunitValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Servicecategory), VTigerEnumValues.ServicecategoryValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Assetstatus), VTigerEnumValues.AssetstatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Projectmilestonetype), VTigerEnumValues.ProjectmilestonetypeValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Projecttasktype), VTigerEnumValues.ProjecttasktypeValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Projecttaskpriority), VTigerEnumValues.ProjecttaskpriorityValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Projecttaskprogress), VTigerEnumValues.ProjecttaskprogressValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Projectstatus), VTigerEnumValues.ProjectstatusValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Projecttype), VTigerEnumValues.ProjecttypeValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Projectpriority), VTigerEnumValues.ProjectpriorityValues));
-            jsonExporter.Register(new EnumValueExporter(typeof(Progress), VTigerEnumValues.ProgressValues));
-            #endregion
+            ServiceUrl = config.Url;
+            _vconfig = config;
         }
 
         /// <summary>
@@ -252,9 +142,9 @@ namespace VtigerIntegration
         //====================================================================
         #region Login & Info
 
-        private VTigerToken GetChallenge(string username)
+        private async Task<VTigerToken> GetChallenge(string username)
         {
-            return VTigerGetJson<VTigerToken>("getchallenge",
+            return await VTigerGetJson<VTigerToken>("getchallenge",
                 String.Format("username={0}", username), false);
         }
 
@@ -264,14 +154,76 @@ namespace VtigerIntegration
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="accessKey">Personal authentication-key provided on the VTiger website</param>
-        public void Login(string username, string accessKey)
+        public async Task Login(string username, string accessKey)
         {
-            string token = GetChallenge(username).token;
+            string token = (await GetChallenge(username)).token;
 
             string key = GetMD5Hash(token + accessKey);
 
-            VTigerLogin loginResult = VTigerGetJson<VTigerLogin>("login",
+            VTigerLogin loginResult = await VTigerGetJson<VTigerLogin>("login",
                 String.Format("username={0}&accessKey={1}", username, key), true);
+
+            sessionName = loginResult.sessionName;
+            vtigerVersion = loginResult.vtigerVersion;
+
+            switch (vtigerVersion)
+            {
+                default:
+                    {
+                        System.Collections.Generic.Dictionary<string, TitleFields> nameFields = new System.Collections.Generic.Dictionary<string, TitleFields>();
+                        nameFields.Add("Calendar", new TitleFields("subject", null, VTigerType.Calendar));
+                        nameFields.Add("Leads", new TitleFields("firstname", "lastname", VTigerType.Leads));
+                        nameFields.Add("Accounts", new TitleFields("accountname", null, VTigerType.Accounts));
+                        nameFields.Add("Contacts", new TitleFields("firstname", "lastname", VTigerType.Contacts));
+                        nameFields.Add("Potentials", new TitleFields("potentialname", null, VTigerType.Potentials));
+                        nameFields.Add("Products", new TitleFields("productname", null, VTigerType.Products));
+                        nameFields.Add("Documents", new TitleFields("notes_title", null, VTigerType.Documents));
+                        nameFields.Add("Emails", new TitleFields("assigned_user_id", "subject", VTigerType.Emails));
+                        nameFields.Add("HelpDesk", new TitleFields("ticket_title", null, VTigerType.HelpDesk));
+                        nameFields.Add("Faq", new TitleFields("question", null, VTigerType.Faq));
+                        nameFields.Add("Vendors", new TitleFields("vendorname", null, VTigerType.Vendors));
+                        nameFields.Add("PriceBooks", new TitleFields("bookname", null, VTigerType.PriceBooks));
+                        nameFields.Add("Quotes", new TitleFields("subject", null, VTigerType.Quotes));
+                        nameFields.Add("PurchaseOrder", new TitleFields("subject", null, VTigerType.PurchaseOrder));
+                        nameFields.Add("SalesOrder", new TitleFields("subject", null, VTigerType.SalesOrder));
+                        nameFields.Add("Invoice", new TitleFields("subject", null, VTigerType.Invoice));
+                        nameFields.Add("Campaigns", new TitleFields("campaignname", null, VTigerType.Campaigns));
+                        nameFields.Add("Events", new TitleFields("subject", null, VTigerType.Events));
+                        nameFields.Add("Users", new TitleFields("user_name", null, VTigerType.Users));
+                        nameFields.Add("PBXManager", new TitleFields(null, null, VTigerType.PBXManager));
+                        nameFields.Add("ServiceContracts", new TitleFields("subject", null, VTigerType.ServiceContracts));
+                        nameFields.Add("Services", new TitleFields("servicename", null, VTigerType.Services));
+                        nameFields.Add("Assets", new TitleFields("product", "assetname", VTigerType.Assets));
+                        nameFields.Add("ModComments", new TitleFields("creator", "related_to", VTigerType.ModComments));
+                        nameFields.Add("ProjectMilestone", new TitleFields("projectmilestonename", null, VTigerType.ProjectMilestone));
+                        nameFields.Add("ProjectTask", new TitleFields("projecttaskname", null, VTigerType.ProjectTask));
+                        nameFields.Add("Project", new TitleFields("projectname", null, VTigerType.Project));
+                        nameFields.Add("SMSNotifier", new TitleFields(null, null, VTigerType.SMSNotifier));
+                        nameFields.Add("Groups", new TitleFields("groupname", null, VTigerType.Groups));
+                        nameFields.Add("Currency", new TitleFields("currency_name", null, VTigerType.Currency));
+                        nameFields.Add("DocumentFolders", new TitleFields("foldername", null, VTigerType.DocumentFolders));
+                        remoteTables = nameFields;
+                        break;
+                    }
+            }
+
+            webserviceVersion = loginResult.version;
+            userID = loginResult.userId;
+        }
+        /// <summary>
+        /// Login to the VTiger API.
+        /// Neccessary to access any data.
+        /// </summary>
+        /// <param name="username">Username</param>
+        /// <param name="accessKey">Personal authentication-key provided on the VTiger website</param>
+        public async Task Login()
+        {
+            string token = (await GetChallenge(this._vconfig.Username)).token;
+
+            string key = GetMD5Hash(token + this._vconfig.AccessKey);
+
+            VTigerLogin loginResult = await VTigerGetJson<VTigerLogin>("login",
+                String.Format("username={0}&accessKey={1}", this._vconfig.Username, key), true);
 
             sessionName = loginResult.sessionName;
             vtigerVersion = loginResult.vtigerVersion;
@@ -324,10 +276,10 @@ namespace VtigerIntegration
         /// <summary>
         /// Terminates the current session
         /// </summary>
-        public void Logout()
+        public async Task Logout()
         {
-            VTigerGetJson<JsonObject>("logout",
-                String.Format("sessionName={0}", sessionName), true);
+            await VTigerGetJson<JsonObject>("logout",
+                 String.Format("sessionName={0}", sessionName), true);
             sessionName = null;
             remoteTables = null;
         }
@@ -336,9 +288,9 @@ namespace VtigerIntegration
         /// Retrieve a list of the different entity-types supported by VTiger (for development)
         /// </summary>
         /// <returns></returns>
-        public VTigerTypeInfo[] Listtypes()
+        public async Task<VTigerTypeInfo[]> Listtypes()
         {
-            VTigerTypes typeList = VTigerGetJson<VTigerTypes>("listtypes",
+            VTigerTypes typeList = await VTigerGetJson<VTigerTypes>("listtypes",
                 String.Format("sessionName={0}", sessionName), false);
 
             typeList.typeInfo = new VTigerTypeInfo[typeList.types.Length];
@@ -358,9 +310,9 @@ namespace VtigerIntegration
         /// Retrieve a list of the different entity-types supported by VTiger (for development)
         /// </summary>
         /// <returns></returns>
-        public DataTable Listtypes_DataTable()
+        public async Task<DataTable> Listtypes_DataTable()
         {
-            VTigerTypeInfo[] types = Listtypes();
+            VTigerTypeInfo[] types = await Listtypes();
             return JsonArrayToDataTable(ImportJson<JsonArray>(ExportJson(types)));
         }
 
@@ -369,9 +321,9 @@ namespace VtigerIntegration
         /// </summary>
         /// <param name="elementType"></param>
         /// <returns></returns>
-        public VTigerObjectType Describe(VTigerType elementType)
+        public async Task<VTigerObjectType> Describe(VTigerType elementType)
         {
-            return VTigerGetJson<VTigerObjectType>("describe",
+            return await VTigerGetJson<VTigerObjectType>("describe",
                 String.Format("sessionName={0}&elementType={1}", sessionName, elementType), false);
         }
 
@@ -380,9 +332,9 @@ namespace VtigerIntegration
         /// </summary>
         /// <param name="elementType"></param>
         /// <returns></returns>
-        public DataTable Describe_DataTable(VTigerType elementType)
+        public async Task<DataTable> Describe_DataTable(VTigerType elementType)
         {
-            VTigerObjectType obj = Describe(elementType);
+            VTigerObjectType obj = await Describe(elementType);
             return JsonArrayToDataTable(ImportJson<JsonArray>(ExportJson(obj.fields)));
         }
 
@@ -397,9 +349,9 @@ namespace VtigerIntegration
         /// <typeparam name="T">Expected result-type (derivate of VTigerEntity)</typeparam>
         /// <param name="id">VTiger-ID</param>
         /// <returns></returns>
-        public T Retrieve<T>(string id) //where T : JsonObject, VTigerEntity
+        public async Task<T> Retrieve<T>(string id) //where T : JsonObject, VTigerEntity
         {
-            return VTigerGetJson<T>("retrieve",
+            return await VTigerGetJson<T>("retrieve",
                 String.Format("sessionName={0}&id={1}", sessionName, id), false);
         }
 
@@ -408,9 +360,9 @@ namespace VtigerIntegration
         /// </summary>
         /// <param name="id">VTiger-ID</param>
         /// <returns></returns>
-        public DataTable Retrieve(string id)
+        public async Task<DataTable> Retrieve(string id)
         {
-            return JsonObjectToDataTable(Retrieve<JsonObject>(id));
+            return JsonObjectToDataTable(await Retrieve<JsonObject>(id));
         }
 
         /// <summary>
@@ -419,9 +371,9 @@ namespace VtigerIntegration
         /// <typeparam name="T">Expected type</typeparam>
         /// <param name="query"></param>
         /// <returns></returns>
-        public T VTiger_Query<T>(string query)
+        public async Task<T> VTiger_Query<T>(string query)
         {
-            return VTigerGetJson<T>("query",
+            return await VTigerGetJson<T>("query",
                 String.Format("sessionName={0}&query={1}", sessionName, HttpUtility.UrlEncode(query)), false);
         }
 
@@ -434,24 +386,24 @@ namespace VtigerIntegration
         /// <example>
         /// This query will return the first 10 contacts whose firstname begins with an "M"  
         /// <code>Query&lt;VTigerContact&gt;("SELECT * FROM Contacts WHERE firstname LIKE 'M%' ORDER BY firstname LIMIT 0,10");</code></example>      
-        public T[] Query<T>(string query) where T : VTigerEntity
+        public async Task<T[]> Query<T>(string query) where T : VTigerEntity
         {
             //Query<VTigerContact>();  
-            return VTiger_Query<T[]>(query);
+            return await VTiger_Query<T[]>(query);
         }
 
-        public T[] Query<T>() where T : VTigerEntity
+        public async Task<T[]> Query<T>() where T : VTigerEntity
         {
-            return Query<T>(0, System.Int32.MaxValue);
+            return await Query<T>(0, System.Int32.MaxValue);
         }
 
-        public T[] Query<T>(int firstRowIndex, int maxNumberOfRecords) where T : VTigerEntity
+        public async Task<T[]> Query<T>(int firstRowIndex, int maxNumberOfRecords) where T : VTigerEntity
         {
             T instance = (T)Activator.CreateInstance(typeof(T));
             string remoteTableName = instance.RemoteTableName();
             string limitClause = " LIMIT " + firstRowIndex.ToString() + ", " + maxNumberOfRecords.ToString();
             string sql = "SELECT * FROM " + remoteTableName + limitClause + ";";
-            return VTiger_Query<T[]>(sql);
+            return await VTiger_Query<T[]>(sql);
         }
 
         /// <summary>
@@ -459,9 +411,9 @@ namespace VtigerIntegration
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public DataTable Query(string query)
+        public async Task<DataTable> Query(string query)
         {
-            return JsonArrayToDataTable(VTiger_Query<JsonArray>(query));
+            return JsonArrayToDataTable(await VTiger_Query<JsonArray>(query));
         }
 
         #endregion
@@ -476,9 +428,9 @@ namespace VtigerIntegration
         /// <param name="elementType"></param>
         /// <param name="element"></param>
         /// <returns></returns>
-        public T VTiger_Create<T>(VTigerType elementType, string element)
+        public async Task<T> VTiger_Create<T>(VTigerType elementType, string element)
         {
-            return VTigerGetJson<T>("create",
+            return await VTigerGetJson<T>("create",
                 String.Format("sessionName={0}&elementType={1}&element={2}", sessionName, elementType, HttpUtility.UrlEncode(element)), true);
         }
 
@@ -488,9 +440,13 @@ namespace VtigerIntegration
         /// <typeparam name="T"></typeparam>
         /// <param name="element"></param>
         /// <returns></returns>
-        public T Create<T>(T element) where T : VTigerEntity
+        public async Task<T> Create<T>(T element) where T : VTigerEntity
         {
-            return VTiger_Create<T>(element.elementType, ExportJson(element));
+            if (string.IsNullOrEmpty(this.sessionName))
+            {
+                await Login();
+            }
+            return await VTiger_Create<T>(element.elementType, ExportJson(element));
         }
 
         /// <summary>
@@ -498,9 +454,9 @@ namespace VtigerIntegration
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public DataTable Create(VTigerEntity element)
+        public async Task<DataTable> Create(VTigerEntity element)
         {
-            return JsonObjectToDataTable(VTiger_Create<JsonObject>(element.elementType, ExportJson(element)));
+            return JsonObjectToDataTable(await VTiger_Create<JsonObject>(element.elementType, ExportJson(element)));
         }
 
         /// <summary>
@@ -509,9 +465,9 @@ namespace VtigerIntegration
         /// <param name="elementType"></param>
         /// <param name="element"></param>
         /// <returns></returns>
-        public DataTable Create(VTigerType elementType, DataRow element)
+        public async Task<DataTable> Create(VTigerType elementType, DataRow element)
         {
-            return JsonObjectToDataTable(VTiger_Create<JsonObject>(elementType, ExportJson(element)));
+            return JsonObjectToDataTable(await VTiger_Create<JsonObject>(elementType, ExportJson(element)));
         }
 
         /// <summary>
@@ -534,10 +490,10 @@ namespace VtigerIntegration
         /// <remarks>WARNING: the remote system must return at least 1 row! If the remote system returns 0 rows, there won't be any information on columns (table schema).</remarks>
         /// <param name="remoteTableName"></param>
         /// <returns></returns>
-        public DataTable NewElementFromRemoteServerScheme(string remoteTableName)
+        public async Task<DataTable> NewElementFromRemoteServerScheme(string remoteTableName)
         {
             string query = String.Format("select * from {0} limit 1;", remoteTableName); // we need to query for at least 1 row to recieve a table schema!
-            DataTable dt = this.Query(query);
+            DataTable dt = await this.Query(query);
             dt = dt.Clone(); //empty all rows and start from the very beginning - except that we've got the full table schema now ;-)
             if (dt.Columns.Count == 0)
             {
@@ -561,9 +517,9 @@ namespace VtigerIntegration
         /// <typeparam name="T"></typeparam>
         /// <param name="element"></param>
         /// <returns></returns>
-        private T VTiger_Update<T>(string element)
+        private async Task<T> VTiger_Update<T>(string element)
         {
-            return VTigerGetJson<T>("update",
+            return await VTigerGetJson<T>("update",
                 String.Format("sessionName={0}&element={1}", sessionName, HttpUtility.UrlEncode(element)), true);
         }
 
@@ -573,9 +529,9 @@ namespace VtigerIntegration
         /// <typeparam name="T"></typeparam>
         /// <param name="element"></param>
         /// <returns></returns>
-        public T Update<T>(T element) where T : VTigerEntity
+        public async Task<T> Update<T>(T element) where T : VTigerEntity
         {
-            return VTiger_Update<T>(ExportJson(element));
+            return await VTiger_Update<T>(ExportJson(element));
         }
 
         /// <summary>
@@ -583,9 +539,9 @@ namespace VtigerIntegration
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public DataTable Update(DataRow element)
+        public async Task<DataTable> Update(DataRow element)
         {
-            return JsonObjectToDataTable(VTiger_Update<JsonObject>(ExportJson(element)));
+            return JsonObjectToDataTable(await VTiger_Update<JsonObject>(ExportJson(element)));
         }
 
         /// <summary>
@@ -593,7 +549,7 @@ namespace VtigerIntegration
         /// </summary>
         /// <param name="elements"></param>
         /// <returns></returns>
-        public DataTable UpdateTable(DataTable elements)
+        public async Task<DataTable> UpdateTable(DataTable elements)
         {
             if (elements.Rows.Count == 0)
                 //return elements;
@@ -602,7 +558,7 @@ namespace VtigerIntegration
             DataTable result = elements.Clone();
             result.Clear();
             foreach (DataRow row in elements.Rows)
-                result.ImportRow(Update(row).Rows[0]);
+                result.ImportRow((await Update(row)).Rows[0]);
             return result;
         }
 
@@ -615,26 +571,26 @@ namespace VtigerIntegration
         /// Delete an element from the database
         /// </summary>
         /// <param name="id">VTiger-ID</param>
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
-            VTigerGetJson<object>("delete",
-                String.Format("sessionName={0}&id={1}", sessionName, id), true);
+            await VTigerGetJson<object>("delete",
+                  String.Format("sessionName={0}&id={1}", sessionName, id), true);
         }
 
-        public JsonObject Sync(DateTime modifiedTime)
+        public async Task<JsonObject> Sync(DateTime modifiedTime)
         {
             int time = 0;
             JsonObject result;
-            result = VTigerGetJson<JsonObject>("sync",
+            result = await VTigerGetJson<JsonObject>("sync",
                 String.Format("sessionName={0}&modifiedTime={1}", sessionName, time), false);
             return result;
         }
 
-        public JsonObject Sync(DateTime modifiedTime, VTigerType elementType)
+        public async Task<JsonObject> Sync(DateTime modifiedTime, VTigerType elementType)
         {
             int time = 0;
             JsonObject result;
-            result = VTigerGetJson<JsonObject>("sync",
+            result = await VTigerGetJson<JsonObject>("sync",
                 String.Format("sessionName={0}&modifiedTime={1}&elementType={2}", sessionName, time, elementType), false);
             return result;
         }
@@ -651,10 +607,13 @@ namespace VtigerIntegration
         /// <returns></returns>
         public string ExportJson(object o)
         {
-            using (JsonTextWriter writer = new JsonTextWriter())
+            try
             {
-                jsonExporter.Export(o, writer);
-                return writer.ToString();
+                return Newtonsoft.Json.JsonConvert.SerializeObject(o);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
 
@@ -666,17 +625,13 @@ namespace VtigerIntegration
         /// <returns></returns>
         public T ImportJson<T>(string json)
         {
-            using (StringReader stringReader = new StringReader(json))
+            try
             {
-                JsonTextReader reader = new JsonTextReader(stringReader);
-                try
-                {
-                    return jsonImporter.Import<T>(reader);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message + " (" + json + ")");
-                }
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(json);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " (" + json + ")");
             }
         }
 
@@ -687,13 +642,13 @@ namespace VtigerIntegration
         /// <param name="parameters">parameters for the operation</param>
         /// <param name="post">Specifies whether a HTTP-GET or HTTP-POST is used for the operation</param>
         /// <returns>VTiger response as string</returns>
-        private string VTigerExecuteOperation(string operation, string parameters, bool post)
+        private async Task<string> VTigerExecuteOperation(string operation, string parameters, bool post)
         {
             string response;
             if (post)
-                response = HttpPost(baseUrl + operation, parameters);
+                response = await HttpPost(baseUrl + operation, parameters);
             else
-                response = HttpGet(baseUrl + operation + "&" + parameters);
+                response = await HttpGet(baseUrl + operation + "&" + parameters);
             if (response == null)
                 throw new Exception("Unable to connect to VTiger-Service");
             return response;
@@ -707,9 +662,9 @@ namespace VtigerIntegration
         /// <param name="parameters">parameters for the operation</param>
         /// <param name="post">Specifies whether a HTTP-GET or HTTP-POST is used for the operation</param>
         /// <returns></returns>
-        private T VTigerGetJson<T>(string operation, string parameters, bool post)
+        private async Task<T> VTigerGetJson<T>(string operation, string parameters, bool post)
         {
-            string response = VTigerExecuteOperation(operation, parameters, post);
+            string response = await VTigerExecuteOperation(operation, parameters, post);
             VTigerResult<T> result = ImportJson<VTigerResult<T>>(response);
             if (!result.success)
             {
@@ -866,9 +821,9 @@ namespace VtigerIntegration
         /// <param name="field">The field of the entity which should match the specified value</param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public string FindEntityID(VTigerType elementType, string field, string value)
+        public async Task<string> FindEntityID(VTigerType elementType, string field, string value)
         {
-            VTigerEntity[] items = Query<VTigerEntity>(String.Format(
+            VTigerEntity[] items = await Query<VTigerEntity>(String.Format(
                 "SELECT id,{1} FROM {0} WHERE {1}='{2}';", VTigerTableName(elementType), field, value));
             if (items.Length == 0)
                 throw new Exception(String.Format(
@@ -887,9 +842,9 @@ namespace VtigerIntegration
         /// <param name="field">The field of the entity which should match the specified value</param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public T FindEntity<T>(string field, string value) where T : VTigerEntity, new()
+        public async Task<T> FindEntity<T>(string field, string value) where T : VTigerEntity, new()
         {
-            T[] items = Query<T>(String.Format(
+            T[] items = await Query<T>(String.Format(
                 "SELECT * FROM {0} WHERE {1}='{2}';", VTigerTableName((new T()).elementType), field, value));
             if (items.Length == 0)
                 return null;
@@ -903,54 +858,54 @@ namespace VtigerIntegration
 
         #region Default GetID-functions
 
-        public string GetUserID(string name)
+        public async Task<string> GetUserID(string name)
         {
-            return FindEntityID(VTigerType.Users, "user_name", name);
+            return await FindEntityID(VTigerType.Users, "user_name", name);
         }
 
-        public string GetAccountID(string name)
+        public async Task<string> GetAccountID(string name)
         {
-            return FindEntityID(VTigerType.Accounts, "accountname", name);
+            return await FindEntityID(VTigerType.Accounts, "accountname", name);
         }
 
-        public string GetProductID(string name)
+        public async Task<string> GetProductID(string name)
         {
-            return FindEntityID(VTigerType.Products, "productname", name);
+            return await FindEntityID(VTigerType.Products, "productname", name);
         }
 
-        public string GetCampaignID(string name)
+        public async Task<string> GetCampaignID(string name)
         {
-            return FindEntityID(VTigerType.Campaigns, "campaignname", name);
+            return await FindEntityID(VTigerType.Campaigns, "campaignname", name);
         }
 
-        public string GetServiceID(string name)
+        public async Task<string> GetServiceID(string name)
         {
-            return FindEntityID(VTigerType.Services, "servicename", name);
+            return await FindEntityID(VTigerType.Services, "servicename", name);
         }
 
-        public string GetAssetID(string name)
+        public async Task<string> GetAssetID(string name)
         {
-            return FindEntityID(VTigerType.Assets, "assetname", name);
+            return await FindEntityID(VTigerType.Assets, "assetname", name);
         }
 
-        public string GetProjectTaskID(string name)
+        public async Task<string> GetProjectTaskID(string name)
         {
-            return FindEntityID(VTigerType.ProjectTask, "projecttaskname", name);
+            return await FindEntityID(VTigerType.ProjectTask, "projecttaskname", name);
         }
 
-        public string GetProjectID(string name)
+        public async Task<string> GetProjectID(string name)
         {
-            return FindEntityID(VTigerType.Project, "projectname", name);
+            return await FindEntityID(VTigerType.Project, "projectname", name);
         }
 
-        public string GetGroupID(string name)
+        public async Task<string> GetGroupID(string name)
         {
-            return FindEntityID(VTigerType.Products, "groupname", name);
+            return await FindEntityID(VTigerType.Products, "groupname", name);
         }
 
-        public string GetCurrencyID(string name)
+        public async Task<string> GetCurrencyID(string name)
         {
-            return FindEntityID(VTigerType.Products, "currency_name", name);
+            return await FindEntityID(VTigerType.Products, "currency_name", name);
         }
 
         #endregion
@@ -987,231 +942,223 @@ namespace VtigerIntegration
 
         #region Default Add-functions
 
-        public VTigerCalendar AddCalendar(string user_id, string subject,
-            DateTime date_start, DateTime due_date, TaskStatus taskStatus)
-        {
-            //Todo: For some kind of reason the server returns success, without creating a new element
-            VTigerCalendar element = new VTigerCalendar(
-                subject,
-                user_id,
-                DateTimeToVtDate(date_start),
-                DateTimeToVtTime(date_start),
-                DateTimeToVtDate(due_date),
-                taskStatus);
-            return Create<VTigerCalendar>(element);
-        }
+        //public async Task<VTigerCalendar> AddCalendar(string user_id, string subject,
+        //    DateTime date_start, DateTime due_date, TaskStatus taskStatus)
+        //{
+        //    //Todo: For some kind of reason the server returns success, without creating a new element
+        //    VTigerCalendar element = new VTigerCalendar(
+        //        subject,
+        //        user_id,
+        //        DateTimeToVtDate(date_start),
+        //        DateTimeToVtTime(date_start),
+        //        DateTimeToVtDate(due_date),
+        //        taskStatus);
+        //    return await Create<VTigerCalendar>(element);
+        //}
 
-        public VTigerLead AddLead(string lastname, string company, string assigned_user_id)
-        {
-            VTigerLead element = new VTigerLead(
-                lastname,
-                company,
-                assigned_user_id);
-            return Create<VTigerLead>(element);
-        }
 
-        public VTigerAccount AddAccount(string accountname, string assigned_user_id)
-        {
-            VTigerAccount element = new VTigerAccount(
-                accountname,
-                assigned_user_id);
-            return Create<VTigerAccount>(element);
-        }
+        //public VTigerAccount AddAccount(string accountname, string assigned_user_id)
+        //{
+        //    VTigerAccount element = new VTigerAccount(
+        //        accountname,
+        //        assigned_user_id);
+        //    return Create<VTigerAccount>(element);
+        //}
 
-        public VTigerContact AddContact(string firstname, string lastname, string assigned_user_id)
-        {
-            VTigerContact element = new VTigerContact(
-                lastname,
-                assigned_user_id);
-            element.firstname = firstname;
-            // return Update<VTigerContact>(element);
-            return Create<VTigerContact>(element);
-        }
+        //public VTigerContact AddContact(string firstname, string lastname, string assigned_user_id)
+        //{
+        //    VTigerContact element = new VTigerContact(
+        //        lastname,
+        //        assigned_user_id);
+        //    element.firstname = firstname;
+        //    // return Update<VTigerContact>(element);
+        //    return Create<VTigerContact>(element);
+        //}
 
-        public VTigerPotential AddPotential(string potentialname, string related_to,
-            string closingdate, Sales_stage sales_stage, string assigned_user_id)
-        {
-            VTigerPotential element = new VTigerPotential(
-                potentialname,
-                related_to,
-                closingdate,
-                sales_stage,
-                assigned_user_id);
-            return Create<VTigerPotential>(element);
-        }
+        //public VTigerPotential AddPotential(string potentialname, string related_to,
+        //    string closingdate, Sales_stage sales_stage, string assigned_user_id)
+        //{
+        //    VTigerPotential element = new VTigerPotential(
+        //        potentialname,
+        //        related_to,
+        //        closingdate,
+        //        sales_stage,
+        //        assigned_user_id);
+        //    return Create<VTigerPotential>(element);
+        //}
 
-        public VTigerProduct AddProduct(string productname, string assigned_user_id)
-        {
-            return Create<VTigerProduct>(new VTigerProduct(productname, assigned_user_id));
-        }
+        //public VTigerProduct AddProduct(string productname, string assigned_user_id)
+        //{
+        //    return Create<VTigerProduct>(new VTigerProduct(productname, assigned_user_id));
+        //}
 
-        public VTigerDocument AddDocument(string notes_title, string assigned_user_id)
-        {
-            VTigerDocument element = new VTigerDocument(
-                notes_title,
-                assigned_user_id);
-            return Create<VTigerDocument>(element);
-        }
+        //public VTigerDocument AddDocument(string notes_title, string assigned_user_id)
+        //{
+        //    VTigerDocument element = new VTigerDocument(
+        //        notes_title,
+        //        assigned_user_id);
+        //    return Create<VTigerDocument>(element);
+        //}
 
-        public VTigerEmail AddEmail(string subject, DateTime date_start,
-            string from_email, string[] saved_toid, string assigned_user_id)
-        {
-            VTigerEmail element = new VTigerEmail(
-                subject,
-                date_start,
-                from_email,
-                saved_toid,
-                assigned_user_id);
-            return Create<VTigerEmail>(element);
-        }
+        //public VTigerEmail AddEmail(string subject, DateTime date_start,
+        //    string from_email, string[] saved_toid, string assigned_user_id)
+        //{
+        //    VTigerEmail element = new VTigerEmail(
+        //        subject,
+        //        date_start,
+        //        from_email,
+        //        saved_toid,
+        //        assigned_user_id);
+        //    return Create<VTigerEmail>(element);
+        //}
 
-        public VTigerHelpDesk AddHelpDesk(string assigned_user_id, Ticketstatus ticketstatus, string ticket_title)
-        {
-            VTigerHelpDesk element = new VTigerHelpDesk(
-                assigned_user_id,
-                ticketstatus,
-                ticket_title);
-            return Create<VTigerHelpDesk>(element);
-        }
+        //public VTigerHelpDesk AddHelpDesk(string assigned_user_id, Ticketstatus ticketstatus, string ticket_title)
+        //{
+        //    VTigerHelpDesk element = new VTigerHelpDesk(
+        //        assigned_user_id,
+        //        ticketstatus,
+        //        ticket_title);
+        //    return  Create<VTigerHelpDesk>(element);
+        //}
 
-        public VTigerFaq AddFaq(Faqstatus faqstatus, string question, string faq_answer)
-        {
-            VTigerFaq element = new VTigerFaq(
-                faqstatus,
-                question,
-                faq_answer);
-            return Create<VTigerFaq>(element);
-        }
+        //public VTigerFaq AddFaq(Faqstatus faqstatus, string question, string faq_answer)
+        //{
+        //    VTigerFaq element = new VTigerFaq(
+        //        faqstatus,
+        //        question,
+        //        faq_answer);
+        //    return Create<VTigerFaq>(element);
+        //}
 
-        public VTigerVendor AddVendor(string vendorname, string assigned_user_id)
-        {
-            return Create<VTigerVendor>(new VTigerVendor(vendorname, assigned_user_id));
-        }
+        //public VTigerVendor AddVendor(string vendorname, string assigned_user_id)
+        //{
+        //    return Create<VTigerVendor>(new VTigerVendor(vendorname, assigned_user_id));
+        //}
 
-        public VTigerPriceBook AddPriceBook(string bookname, string currency_id)
-        {
-            VTigerPriceBook element = new VTigerPriceBook(
-                bookname,
-                currency_id);
-            return Create<VTigerPriceBook>(element);
-        }
+        //public VTigerPriceBook AddPriceBook(string bookname, string currency_id)
+        //{
+        //    VTigerPriceBook element = new VTigerPriceBook(
+        //        bookname,
+        //        currency_id);
+        //    return Create<VTigerPriceBook>(element);
+        //}
 
-        public VTigerQuote AddQuote(string subject, Quotestage quotestage, string bill_street,
-            string ship_street, string account_id, string assigned_user_id)
-        {
-            VTigerQuote element = new VTigerQuote(
-                subject,
-                quotestage,
-                bill_street,
-                ship_street,
-                account_id,
-                assigned_user_id);
-            return Create<VTigerQuote>(element);
-        }
+        //public VTigerQuote AddQuote(string subject, Quotestage quotestage, string bill_street,
+        //    string ship_street, string account_id, string assigned_user_id)
+        //{
+        //    VTigerQuote element = new VTigerQuote(
+        //        subject,
+        //        quotestage,
+        //        bill_street,
+        //        ship_street,
+        //        account_id,
+        //        assigned_user_id);
+        //    return Create<VTigerQuote>(element);
+        //}
 
-        public VTigerPurchaseOrder AddPurchaseOrder(string subject, string vendor_id, PoStatus postatus,
-            string bill_street, string ship_street, string assigned_user_id)
-        {
-            VTigerPurchaseOrder element = new VTigerPurchaseOrder(
-                subject,
-                vendor_id,
-                postatus,
-                bill_street,
-                ship_street,
-                assigned_user_id);
-            return Create<VTigerPurchaseOrder>(element);
-        }
+        //public VTigerPurchaseOrder AddPurchaseOrder(string subject, string vendor_id, PoStatus postatus,
+        //    string bill_street, string ship_street, string assigned_user_id)
+        //{
+        //    VTigerPurchaseOrder element = new VTigerPurchaseOrder(
+        //        subject,
+        //        vendor_id,
+        //        postatus,
+        //        bill_street,
+        //        ship_street,
+        //        assigned_user_id);
+        //    return Create<VTigerPurchaseOrder>(element);
+        //}
 
-        public VTigerSalesOrder AddSalesOrder(string subject, SoStatus sostatus, string bill_street,
-            string ship_street, Invoicestatus invoicestatus, string account_id, string assigned_user_id)
-        {
-            VTigerSalesOrder element = new VTigerSalesOrder(
-                subject,
-                sostatus,
-                bill_street,
-                ship_street,
-                invoicestatus,
-                account_id,
-                assigned_user_id);
-            return Create<VTigerSalesOrder>(element);
-        }
+        //public VTigerSalesOrder AddSalesOrder(string subject, SoStatus sostatus, string bill_street,
+        //    string ship_street, Invoicestatus invoicestatus, string account_id, string assigned_user_id)
+        //{
+        //    VTigerSalesOrder element = new VTigerSalesOrder(
+        //        subject,
+        //        sostatus,
+        //        bill_street,
+        //        ship_street,
+        //        invoicestatus,
+        //        account_id,
+        //        assigned_user_id);
+        //    return Create<VTigerSalesOrder>(element);
+        //}
 
-        public VTigerInvoice AddInvoice(string subject, string bill_street, string ship_street,
-            string account_id, string assigned_user_id)
-        {
-            VTigerInvoice element = new VTigerInvoice(
-                subject,
-                bill_street,
-                ship_street,
-                account_id,
-                assigned_user_id);
-            return Create<VTigerInvoice>(element);
-        }
+        //public VTigerInvoice AddInvoice(string subject, string bill_street, string ship_street,
+        //    string account_id, string assigned_user_id)
+        //{
+        //    VTigerInvoice element = new VTigerInvoice(
+        //        subject,
+        //        bill_street,
+        //        ship_street,
+        //        account_id,
+        //        assigned_user_id);
+        //    return Create<VTigerInvoice>(element);
+        //}
 
-        public VTigerCampaign AddCampaign(string campaignname, DateTime closingdate, string assigned_user_id)
-        {
-            VTigerCampaign element = new VTigerCampaign(
-                campaignname,
-                closingdate,
-                assigned_user_id);
-            return Create<VTigerCampaign>(element);
-        }
+        //public VTigerCampaign AddCampaign(string campaignname, DateTime closingdate, string assigned_user_id)
+        //{
+        //    VTigerCampaign element = new VTigerCampaign(
+        //        campaignname,
+        //        closingdate,
+        //        assigned_user_id);
+        //    return Create<VTigerCampaign>(element);
+        //}
 
-        public VTigerEvent AddEvent(string subject, string date_start, string time_start, string due_date,
-            string time_end, int duration_hours, Eventstatus eventstatus,
-            Activitytype activitytype, string assigned_user_id)
-        {
-            VTigerEvent element = new VTigerEvent(
-                subject,
-                date_start,
-                time_start,
-                due_date,
-                time_end,
-                duration_hours,
-                eventstatus,
-                activitytype,
-                assigned_user_id);
-            return Create<VTigerEvent>(element);
-        }
+        //public VTigerEvent AddEvent(string subject, string date_start, string time_start, string due_date,
+        //    string time_end, int duration_hours, Eventstatus eventstatus,
+        //    Activitytype activitytype, string assigned_user_id)
+        //{
+        //    VTigerEvent element = new VTigerEvent(
+        //        subject,
+        //        date_start,
+        //        time_start,
+        //        due_date,
+        //        time_end,
+        //        duration_hours,
+        //        eventstatus,
+        //        activitytype,
+        //        assigned_user_id);
+        //    return Create<VTigerEvent>(element);
+        //}
 
-        public VTigerPBXManager AddPBXManager(string customernumber, string callfrom, string callto, string assigned_user_id)
-        {
-            VTigerPBXManager element = new VTigerPBXManager(
-                customernumber,
-                callfrom,
-                callto,
-                assigned_user_id);
-            return Create<VTigerPBXManager>(element);
-        }
+        //public VTigerPBXManager AddPBXManager(string customernumber, string callfrom, string callto, string assigned_user_id)
+        //{
+        //    VTigerPBXManager element = new VTigerPBXManager(
+        //        customernumber,
+        //        callfrom,
+        //        callto,
+        //        assigned_user_id);
+        //    return Create<VTigerPBXManager>(element);
+        //}
 
-        public VTigerServiceContract AddServiceContract(string subject, string assigned_user_id)
-        {
-            VTigerServiceContract element = new VTigerServiceContract(
-                subject,
-                assigned_user_id);
-            return Create<VTigerServiceContract>(element);
-        }
+        //public VTigerServiceContract AddServiceContract(string subject, string assigned_user_id)
+        //{
+        //    VTigerServiceContract element = new VTigerServiceContract(
+        //        subject,
+        //        assigned_user_id);
+        //    return Create<VTigerServiceContract>(element);
+        //}
 
-        public VTigerService AddService(string servicename)
-        {
-            return Create<VTigerService>(new VTigerService(servicename));
-        }
+        //public VTigerService AddService(string servicename)
+        //{
+        //    return Create<VTigerService>(new VTigerService(servicename));
+        //}
 
-        public VTigerAsset AddAsset(string product, string serialnumber, string datesold,
-            string dateinservice, Assetstatus assetstatus, string assetname,
-            string account, string assigned_user_id)
-        {
-            VTigerAsset element = new VTigerAsset(
-                product,
-                serialnumber,
-                datesold,
-                dateinservice,
-                assetstatus,
-                assetname,
-                account,
-                assigned_user_id);
-            return Create<VTigerAsset>(element);
-        }
+        //public VTigerAsset AddAsset(string product, string serialnumber, string datesold,
+        //    string dateinservice, Assetstatus assetstatus, string assetname,
+        //    string account, string assigned_user_id)
+        //{
+        //    VTigerAsset element = new VTigerAsset(
+        //        product,
+        //        serialnumber,
+        //        datesold,
+        //        dateinservice,
+        //        assetstatus,
+        //        assetname,
+        //        account,
+        //        assigned_user_id);
+        //    return Create<VTigerAsset>(element);
+        //}
 
         //public VTigerDocument Add()
         //{
@@ -1243,7 +1190,7 @@ namespace VtigerIntegration
             return sBuilder.ToString();
         }
 
-        private static string HttpGet(string url)
+        private static async Task<string> HttpGet(string url)
         {
             HttpWebRequest webRequest = GetWebRequest(url);
             if (IgnoreSslCertificateErrors)
@@ -1254,7 +1201,7 @@ namespace VtigerIntegration
             {
                 ServicePointManager.ServerCertificateValidationCallback = null;
             }
-            HttpWebResponse response = (HttpWebResponse)webRequest.GetResponse();
+            HttpWebResponse response = (HttpWebResponse)(await webRequest.GetResponseAsync());
             string jsonResponse = string.Empty;
             using (StreamReader sr = new StreamReader(response.GetResponseStream()))
             {
@@ -1263,7 +1210,7 @@ namespace VtigerIntegration
             return jsonResponse;
         }
 
-        private static string HttpPost(string url, string parameters)
+        private static async Task<string> HttpPost(string url, string parameters)
         {
             HttpWebRequest webRequest = GetWebRequest(url);
             if (IgnoreSslCertificateErrors)
@@ -1287,7 +1234,7 @@ namespace VtigerIntegration
             try
             {
                 // get the response
-                WebResponse webResponse = webRequest.GetResponse();
+                WebResponse webResponse = await webRequest.GetResponseAsync();
                 if (webResponse == null)
                 { return null; }
                 StreamReader sr = new StreamReader(webResponse.GetResponseStream());
