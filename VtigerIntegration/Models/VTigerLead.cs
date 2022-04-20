@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,23 +25,27 @@ namespace VtigerIntegration.Models
             this.company = company;
             this.assigned_user_id = assigned_user_id;
         }
+       
         public string salutationtype;
         public string firstname;
         public string lead_no;
         public string phone;
+        [Required]
         public string lastname; //mandatory
         public string mobile;
+        [Required]
         public string company; //mandatory
         public string fax;
         public string designation;
         public string email;
         public Leadsource leadsource;
         public string website;
-        public Industry industry;
-        public Leadstatus leadstatus;
-        public int annualrevenue;
-        public Rating rating;
+        public Industry? industry = Industry.Other;
+        public Leadstatus? leadstatus = Leadstatus.Hot;
+        public double annualrevenue;
+        public Rating? rating = Rating.None;
         public int noofemployees;
+        [Required]
         public string assigned_user_id; //mandatory
         public string yahooid;
         public DateTime createdtime;

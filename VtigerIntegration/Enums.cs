@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,11 +18,36 @@ namespace VtigerIntegration
     public enum Visibility { Private, Public }
     public enum Duration_minutes { _00, _15, _30, _45 }
     public enum RecurringType { None, Daily, Weekly, Monthly, Yearly }
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum Leadsource
     {
-        None, Cold_Call, Existing_Customer, Self_Generated,
-        Employee, Partner, Public_Relations, Direct_Mail,
-        Conference, Trade_Show, Web_Site, Word_of_mouth, Other
+        [EnumMember(Value = "None")]
+        None,
+        [EnumMember(Value = "Cold Call")]
+        Cold_Call,
+        [EnumMember(Value = "Existing Customer")]
+        Existing_Customer,
+        [EnumMember(Value = "Self Generated")]
+        Self_Generated,
+        [EnumMember(Value = "Employee")]
+        Employee,
+        [EnumMember(Value = "Partner")]
+        Partner,
+        [EnumMember(Value = "Public Relations")]
+        Public_Relations,
+        [EnumMember(Value = "Direct Mail")]
+        Direct_Mail,
+        [EnumMember(Value = "Conference")]
+        Conference,
+        [EnumMember(Value = "Trade Show")]
+        Trade_Show,
+        [EnumMember(Value = "Web Site")]
+        Web_Site,
+        [EnumMember(Value = "Word of mouth")]
+        Word_of_mouth,
+        [EnumMember(Value = "Other")]
+        Other
     }
     public enum Industry
     {
